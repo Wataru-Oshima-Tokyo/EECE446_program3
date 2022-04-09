@@ -298,9 +298,10 @@ void fetchFunction(int s)
                         puts("recv failed");
                         break;
                 }
+                if(_rec==1){break;}
                 total_len += _rec;
                 fwrite(response , _rec , 1, file);
-                // printf("\nReceived byte size = %d\nTotal lenght = %d", _rec, total_len);
+                printf("\nReceived byte size = %d\nTotal length = %d", _rec, total_len);
 
                 if( _rec == 0 ){
                         break;
