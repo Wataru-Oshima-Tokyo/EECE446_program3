@@ -1,4 +1,4 @@
-EXE = peer peer_v2
+EXE = peer_v2
 CFLAGS = -Wall
 CXXFLAGS = -Wall
 LDLIBS =
@@ -13,7 +13,7 @@ all: $(EXE)
 peer: peer.c
 	$(CC) $(CFLAGS) peer.c $(LDLIBS) -o peer
 peer_v2: peer_v2.c
-	$(CC) $(CFLAGS) peer_v2.c $(LDLIBS) -o peer_v2
+	$(CC) $(CFLAGS) peer_v2.c $(LDLIBS) -o peer
 
 #
 # OR

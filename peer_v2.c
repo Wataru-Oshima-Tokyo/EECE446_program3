@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <arpa/inet.h>
 #include <dirent.h>
+#define rep(i,a,b) for(int i=a; i<b;i++)
 
 int lookup_and_connect( const char *host, const char *service );
 
@@ -122,42 +123,69 @@ void publishFunction(int s){
 void searchFunction(int s){
         printf("Enter a file name: ");
         char str[100];
+        int flag=0;
         scanf("%s",str);
-        int size = strlen(str) + 1;
-        char buf[1200];
-        buf[0] = 2;
-        memcpy(buf+1, str, size);
-        size = size + 1;
-        buf[size+1] = '\0';
-        if((sendall(s, buf, &size)) == -1)
+        char search_request[1200];
+        char buf[10];
+        // char s[1200];
+        search_request[0] = 0x02;
+        int len = strlen(str);
+        rep(i,1,len+1){
+              search_request[i] = str[i-1];
+        } 
+        search_request[len+1] = 0x00;
+        int bytes_sent = send(s, search_request, len+2, 0);
+        if (bytes_sent == -1)
         {
-                printf("error\n");
+                perror("[<Error> Client] onSend:\n");
                 exit(1);
         }
-        char response[10];
-        recv(s, response, 10, 0);
-        int errorCheck = 0;
-        for(int i = 0; i < strlen(response); i++)
-            if(response[i] == 0) 
-                errorCheck++; 
-        if(errorCheck == 10)
+        int _len =0;
+        _len = recv(s, buf, 10, 0 );
+        if(_len <0){exit(1);}
+        // unsigned int result =0x00;
+        char peer[100];
+        char port[100];
+        long peer_n =0;
+        // result[0] ='x';
+        for (int i = 0; i < 10; i++)
         {
-            printf("File not indexed by registry\n");
-            exit(1);
-        }    
-        uint32_t peerID;
-        uint32_t ipAddr;
-        uint16_t port;
-        memcpy(&peerID, response, 4);
-        memcpy(&ipAddr, response+4, 4);
-        memcpy(&port, response+8, 2);
-        peerID = ntohl(peerID);
-        port = ntohs(port);
-        char realIP[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &ipAddr, realIP, sizeof(realIP));
-        printf("File found at\n");
-        printf(" Peer %u\n", peerID);
-        printf(" %s:%u\n", realIP, port);
+        char str[6];
+        unsigned int temp = buf[i] & 0xFF;         
+        if(i<4){
+                // printf("%d", temp); 
+                snprintf(str, sizeof(str), "%02x", temp);
+                strcat(peer, str);
+                
+        }   
+        else if (i==4){
+                peer_n = strtol(peer, NULL, 16);
+                if(peer_n !=0){
+                        printf("File found at\n Peer %ld\n", peer_n);
+                        peer_n =0;
+                }else {
+                        printf("File not indexed by registry\n");
+                        flag =1;
+                        break;
+                }
+                //  printf("%ld", n);
+                // printf(" %d.", temp); 
+        }
+        }  
+        if(flag !=1){
+                char realIP[INET_ADDRSTRLEN];
+                uint32_t ipAddr;
+                uint16_t port;
+                char port_char[2];
+                memcpy(&ipAddr, buf+4, 4);
+                memcpy(&port, buf+8,2);
+                port = ntohs(port);
+                inet_ntop(AF_INET, &ipAddr, realIP, sizeof(realIP));
+                sprintf(port_char,"%u", port);
+                printf(" %s:%s\n", realIP, port_char);
+        }  
+        memset(port, 0, 100);
+        memset(peer, 0, 100); 
 }
 
 void actionFunction(int s, char* command, int peerID){
@@ -182,78 +210,86 @@ void fetchFunction(int s)
 {
         printf("Enter a file name: ");
         char str[100];
+        int flag=0;
         scanf("%s",str);
-        int size = strlen(str) + 1;
-        char buf[1200];
-        buf[0] = 2;
-        memcpy(buf+1, str, size);
-        size = size + 1;
-        buf[size+1] = '\0';
-        if((sendall(s, buf, &size)) == -1)
+        char search_request[1200];
+        char buf[10];
+        // char s[1200];
+        search_request[0] = 0x02;
+        int len = strlen(str);
+        rep(i,1,len+1){
+              search_request[i] = str[i-1];
+        } 
+        search_request[len+1] = 0x00;
+        int bytes_sent = send(s, search_request, len+2, 0);
+        if (bytes_sent == -1)
         {
-                printf("error\n");
+                perror("[<Error> Client] onSend:\n");
                 exit(1);
         }
-        char response[10];
-        recv(s, response, 10, 0);
-        // char response[1200];
-        // recvall(s, response, 10);
-        int errorCheck = 0;
-        for(int i = 0; i < strlen(response); i++)
-            if(response[i] == 0) 
-                errorCheck++; 
-        if(errorCheck == 10)
+        int _len =0;
+        _len = recv(s, buf, 10, 0 );
+        if(_len <0){exit(1);}
+        // unsigned int result =0x00;
+        char peer[100];
+        char port[100];
+        long peer_n =0;
+        // result[0] ='x';
+        for (int i = 0; i < 10; i++)
         {
-            printf("File not indexed by registry\n");
-            exit(1);
-        }    
-        //FETCH starts from here if the file is found 
-        uint32_t peerID;
-        uint16_t port;
-        uint32_t ipAddr;
-        // const char *peerID;
-        // const char *port;
-        // char peerID_char[100];
-        // char port_char[2];
-        memcpy(&peerID, response, 4);
-        memcpy(&ipAddr, response+4, 4);
-        memcpy(&port, response+8, 2);
-        // const char* port_char = reinterpret_cast<const char*>(port);
-        // memcpy(&port_char, response+8, 2);
-        // memcpy(&ipAddr, response+4, 4);
-        // memcpy(&port, response+8, 2);
-        // sprintf(peerID_char,"%u", peerID);
-        // sprintf(port_char,"%u", port);
-        peerID = ntohl(peerID);
-        port = ntohs(port);
-
+        char str[6];
+        unsigned int temp = buf[i] & 0xFF;         
+        if(i<4){
+                // printf("%d", temp); 
+                snprintf(str, sizeof(str), "%02x", temp);
+                strcat(peer, str);
+                
+        }   
+        else if (i==4){
+                peer_n = strtol(peer, NULL, 16);
+                if(peer_n !=0){
+                        printf("File found at\n Peer %ld\n", peer_n);
+                        peer_n =0;
+                }else {
+                        printf("File not indexed by registry\n");
+                        flag =1;
+                        break;
+                }
+                //  printf("%ld", n);
+                // printf(" %d.", temp); 
+        }
+        }  
+        if(flag !=1){
         char realIP[INET_ADDRSTRLEN];
-        char port_char[INET_ADDRSTRLEN];
-        sprintf(port_char, "%u", port);
-        printf("%s\n", port_char);
+        uint32_t ipAddr;
+        uint16_t port;
+        char port_char[2];
+        memcpy(&ipAddr, buf+4, 4);
+        memcpy(&port, buf+8,2);
+        port = ntohs(port);
         inet_ntop(AF_INET, &ipAddr, realIP, sizeof(realIP));
-        printf("File found at\n");
-        printf(" Peer %u\n", peerID);
-        printf(" port %u\n", port);
-        printf(" %s:%u\n", realIP, port);
+        sprintf(port_char,"%u", port);
+        printf(" %s:%s\n", realIP, port_char);
+
         int _s;
         if ( ( _s = lookup_and_connect(realIP, port_char ) ) < 0 ) {
                 exit( 1 );
         }
-        printf("Downloading...\n");
-        buf[0]=3;
-        if((sendall(_s, buf, &size)) == -1)
+        // printf("Downloading...\n");
+        search_request[0]=0x03;
+        if((send(_s, search_request, len+2,0)) == -1)
         {
                 printf("error\n");
                 exit(1);
         }
         int total_len = 0;
+        char response[10];
         FILE *file = NULL;
         file = fopen(str, "ab");
         if(file == NULL){
                 printf("File could not opened");
         }else{
-                printf("File succesfully opened");      
+                // printf("File succesfully opened");      
         }
         while(1)
         {
@@ -264,16 +300,20 @@ void fetchFunction(int s)
                 }
                 total_len += _rec;
                 fwrite(response , _rec , 1, file);
-                printf("\nReceived byte size = %d\nTotal lenght = %d", _rec, total_len);
+                // printf("\nReceived byte size = %d\nTotal lenght = %d", _rec, total_len);
 
                 if( _rec == 0 ){
                         break;
                 }  
                 
         }
-        puts("Reply received\n");
+        // puts("\nReply received\n");
 
         fclose(file);
+        }
+        
+        memset(port, 0, 100);
+        memset(peer, 0, 100);
  
 }
 // Function to deal with partial send --- from Beej's guide on Partial send()/recv()
