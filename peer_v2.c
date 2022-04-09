@@ -248,7 +248,6 @@ void fetchFunction(int s)
                 exit(1);
         }
         int total_len = 0;
-        int file_len = 99352;
         FILE *file = NULL;
         file = fopen(str, "ab");
         if(file == NULL){
