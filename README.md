@@ -21,7 +21,7 @@ The first two arguments are the same as p3_registory. 20111 is a unique id for t
 
 3.
 ```
-./peer_v2 localhost 2010 20123
+./peer localhost 2010 20123
 ```
 
 All the arguments are the same as p3_peer.
@@ -31,7 +31,7 @@ All the arguments are the same as p3_peer.
 
 2 = the terminal for p3_peer
 
-3 = the terminal for peer_v2
+3 = the terminal for peer
 
 2
 ```
