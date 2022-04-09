@@ -50,5 +50,5 @@ aaa.pdf
 ```
 join the registory, FETCH the file 
 
-And you would see the file in the local diretory.
+And you would see the file in the local directory.
 
