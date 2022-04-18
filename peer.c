@@ -287,29 +287,42 @@ void fetchFunction(int s)
         FILE *file = NULL;
         file = fopen(str, "ab");
         if(file == NULL){
-                printf("File could not opened");
+                printf("File could not open");
         }else{
                 // printf("File succesfully opened");      
         }
+        int count =0;
         while(1)
         {
+                if(count==0){
+                        int flag = recv(_s, response, 2, 0);
+                        printf("flag is %d\n", flag);
+                        if(flag==1) break;
+                        else {
+                                char content[1];
+                                memcpy(&content, response+1, 1);
+                                fwrite(content , 1 , 1, file);
+                                total_len++;
+                        }
+                }
                 int _rec = recv(_s, response, 10, 0);
                 if( _rec < 0 ){
                         puts("recv failed");
                         break;
                 }
-                if(_rec==1){break;}
-                total_len += _rec;
+                // if(_rec==1){break;}
+                total_len += _rec;      
                 fwrite(response , _rec , 1, file);
-                printf("\nReceived byte size = %d\nTotal length = %d", _rec, total_len);
+                // printf("Received byte size = %d\nTotal length = %d\n", _rec, total_len);
 
                 if( _rec == 0 ){
                         break;
                 }  
+                count++;
                 
         }
         // puts("\nReply received\n");
-
+        printf("Total length = %d\n",total_len);
         fclose(file);
         }
         
