@@ -1,4 +1,4 @@
-//Maxwell Kuse
+//Wataru Oshima
 //Jesus Ramirez
 //EECE 446 Spring 2022
 
